@@ -37,12 +37,9 @@ employe.find()
 
 
 app.post('/employe', (req, res) => {
-
     bcrypt.hash(req.body.password, 10)
     .then((hash) => {
-
-        req.body.password = hash;
-
+    req.body.password = hash;
         employe.insertMany(req.body)
         .then((data) => {
             res.status(200).send(data);
@@ -55,7 +52,6 @@ app.post('/employe', (req, res) => {
     .catch((err) => {
         res.status(500).send(err);
     });
-
 });
 
 app.get('/employe',(req,res)=>{
