@@ -27,17 +27,36 @@ const empSchema = new mongoose.Schema({
 const employe = mongoose.model("Employe",empSchema);
 employe.find()
 
-app.post('/employe',(req,res)=>{
-     employe.insertMany(req.body)
-    .then((data)=>{
-        console.log(data);
-        res.status(200).send(data);
+// const userSchema = new mongoose.Schema({
+//     username:String,
+//     email:String,
+//     password:String
+// });
+// const user = mongoose.model("user",userSchema);
+
+
+
+app.post('/employe', (req, res) => {
+
+    bcrypt.hash(req.body.password, 10)
+    .then((hash) => {
+
+        req.body.password = hash;
+
+        employe.insertMany(req.body)
+        .then((data) => {
+            res.status(200).send(data);
+        })
+        .catch((err) => {
+            res.status(500).send(err);
+        });
+
     })
-    .catch((err)=>{
-        console.log(err);
+    .catch((err) => {
         res.status(500).send(err);
-    })
-})
+    });
+
+});
 
 app.get('/employe',(req,res)=>{
     employe.find()
@@ -63,19 +82,34 @@ app.delete('/employe', (req, res) => {
 });
 
 
-employe.find()
-.then(function(data){
-    const pswd = data.map(function(user){
-        return bcrypt.hash(user.password,10)
-        .then(function(hash){
-            user.password = hash;
-            return user.save();
+
+app.post('/login',(req,res)=>{
+    
+    employe.findOne({
+        email:req.body.email
+    })
+    .then((user)=>{
+        if(!user){
+            return res.send("User Not Found");
+        }
+        
+        bcrypt.compare(req.body.password,user.password)
+        .then((result)=>{
+            if(result){
+                return res.send("Login Successful");
+            }else{
+                return res.send("Invalid Password");
+            }
         })
-    });
-return Promise.all(pswd);
-
+        .catch((error)=>{
+            console.log(error)
+        })
+        
+    })
+    .catch((error)=>{
+        res.status(500).send(error)
+    })
 })
-
 
 app.listen(5000,()=>{
     console.log("server running");
